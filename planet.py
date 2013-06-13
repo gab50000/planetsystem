@@ -2,6 +2,7 @@
 
 import pygame
 import math
+import random
 
 class planet:
 	def __init__(self, pos, vel, acc, mass, color, radius, window):
@@ -13,6 +14,7 @@ class planet:
 		self.color=color
 		self.radius=radius
 		self.window=window
+		self.t=trace(self.window, (random.randint(0,255),random.randint(0,255),random.randint(0,255)))
 
 	def verlet_a(self, dt):
 		self.newpos[0] = self.pos[0] + self.vel[0]*dt + 0.5 * self.acc[0]*dt*dt 
@@ -53,37 +55,46 @@ def multi_gravity(planet1, planetlist):
 
 
 class trace:
-	def __init__(self, window):
+	def __init__(self, window, color):
 		self.history=[]
 		self.window=window
+		self.color=color
 	def newpoint(self, pos):
 		self.history.append(pos)
 	def draw(self):
 		for p in self.history:
-			pygame.draw.circle(self.window, (0,255,0), p, 2)
+			pygame.draw.circle(self.window, self.color, p, 2)
 
 size=(800,600)
 pygame.init()
 fps=pygame.time.Clock()
 window=pygame.display.set_mode(size)
 
-sun = planet([400,300], [-.5,0], [0,0], 1000000, (255,0,0), 10, window)
-moon = planet([400,100], [50,0], [0,0], 10000, (255,255,255), 5, window)
-planets=(sun,moon)
-t=trace(window)
+sun = planet([400,300], [-0.02,0], [0,0], 1000, (255,0,0), 10, window)
+moon = planet([400,500], [-1,0], [0,0], 10, (255,255,255), 5, window)
+moon2 = planet([400,20], [1,0], [0,0], 10, (255,255,255), 5, window)
+planets=[sun,moon, moon2]
+planets.append(planet([100,300], [0,1], [0,0], 10, (255,255,255), 5, window))
+planets.append(planet([700,300], [0,-1], [0,0], 10, (255,255,255), 5, window))
+
+t1=trace(window, (0,255,0))
+t2=trace(window, (255,0,255))
 counter=0
 while 1:
 	window.fill(pygame.Color(0,0,0))
-	t.draw()
 	for planet in planets:
-		planet.verlet_a(0.5)
+		planet.verlet_a(1)
 	for planet in planets:
-		planet.verlet_b(lambda x: multi_gravity(planet,planets), 0.5)
+		planet.verlet_b(lambda x: multi_gravity(planet,planets), 1)
 		planet.update_pos()
+		planet.t.draw()
+	for planet in planets:
 		planet.draw()
 
+
 	if counter==1:
-		t.newpoint((int(moon.pos[0]), int(moon.pos[1])))
+		for planet in planets:
+			planet.t.newpoint((int(planet.pos[0]), int(planet.pos[1])))
 		counter=0
 	pygame.display.update()
 	fps.tick(30)
