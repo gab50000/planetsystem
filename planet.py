@@ -3,6 +3,7 @@
 import pygame
 import math
 import random
+from collections import deque
 
 class planet:
 	def __init__(self, pos, vel, acc, mass, color, radius, window):
@@ -34,6 +35,20 @@ class planet:
 	def draw(self):
 		pygame.draw.circle(self.window, self.color, (int(self.pos[0]), int(self.pos[1])), self.radius)
 
+class trace:
+	def __init__(self, window, color):
+		self.history=deque([])
+		self.window=window
+		self.color=color
+	def newpoint(self, pos):
+		self.history.append(pos)
+		if len(self.history) > 1000:
+			self.history.popleft()
+
+	def draw(self):
+		for p in self.history:
+			pygame.draw.circle(self.window, self.color, p, 2)
+
 def gravity(planet1, planet2):
 	dr = (planet2.newpos[0]-planet1.newpos[0], planet2.newpos[1]-planet1.newpos[1])
 	lensqdr_rez=1./(dr[0]*dr[0]+dr[1]*dr[1])
@@ -54,16 +69,6 @@ def multi_gravity(planet1, planetlist):
 	
 
 
-class trace:
-	def __init__(self, window, color):
-		self.history=[]
-		self.window=window
-		self.color=color
-	def newpoint(self, pos):
-		self.history.append(pos)
-	def draw(self):
-		for p in self.history:
-			pygame.draw.circle(self.window, self.color, p, 2)
 
 size=(800,600)
 pygame.init()
@@ -81,23 +86,22 @@ t1=trace(window, (0,255,0))
 t2=trace(window, (255,0,255))
 counter=0
 while 1:
-	window.fill(pygame.Color(0,0,0))
 	for planet in planets:
 		planet.verlet_a(1)
 	for planet in planets:
 		planet.verlet_b(lambda x: multi_gravity(planet,planets), 1)
 		planet.update_pos()
-		planet.t.draw()
-	for planet in planets:
-		planet.draw()
-
-
-	if counter==1:
+	if counter==5:
+		window.fill(pygame.Color(0,0,0))
 		for planet in planets:
 			planet.t.newpoint((int(planet.pos[0]), int(planet.pos[1])))
+			planet.t.draw()
+		for planet in planets:
+			planet.draw()
+		pygame.display.update()
+		fps.tick(30)
+
 		counter=0
-	pygame.display.update()
-	fps.tick(30)
 	counter+=1
 pygame.quit()
 
