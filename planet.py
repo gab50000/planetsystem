@@ -20,8 +20,7 @@ class planet:
 	def verlet_a(self, dt):
 		self.newpos[0] = self.pos[0] + self.vel[0]*dt + 0.5 * self.acc[0]*dt*dt 
 		self.newpos[1] = self.pos[1] + self.vel[1]*dt + 0.5 * self.acc[1]*dt*dt 
-	def verlet_b(self, forcefunc, dt):
-		force=forcefunc(self)
+	def verlet_b(self, force, dt):
 
 		self.vel[0] = self.vel[0] + 0.5*(self.acc[0] + force[0]/self.mass)*dt
 		self.vel[1] = self.vel[1] + 0.5*(self.acc[1] + force[1]/self.mass)*dt
@@ -57,6 +56,12 @@ def gravity(planet1, planet2):
 
 	return (g*dr[0]*lendr_rez, g*dr[1]*lendr_rez) 
 
+def spring(planet1, planet2, k, d0):
+	dr = (planet2.newpos[0]-planet1.newpos[0], planet2.newpos[1]-planet1.newpos[1])
+	displacement=math.sqrt(dr[0]*dr[0]+dr[1]*dr[1])-d0
+	return k*displacement*displacement
+
+
 def multi_gravity(planet1, planetlist):
 	gravsum=[0,0]
 	for planet2 in planetlist:
@@ -68,42 +73,42 @@ def multi_gravity(planet1, planetlist):
 
 	
 
+if __name__=="__main__":
+
+	size=(1024,768)
+	pygame.init()
+	fps=pygame.time.Clock()
+	window=pygame.display.set_mode(size)
+
+	sun = planet([400,300], [0.01,0], [0,0], 1000, (255,255,0), 10, window)
+	#~ sun2 = planet([450,300], [0,0], [0,0], 1000, (255,0,0), 10, window)
+	moon = planet([400,500], [-1,0], [0,0], 10, (255,255,255), 5, window)
+	moon2 = planet([400,20], [1,0], [0,0], 10, (255,255,255), 5, window)
+	planets=[sun,moon,moon2]
+	planets.append(planet([100,300], [0,1], [0,0], 10, (255,255,255), 5, window))
+	planets.append(planet([700,300], [0,-1], [0,0], 10, (255,255,255), 5, window))
 
 
-size=(800,600)
-pygame.init()
-fps=pygame.time.Clock()
-window=pygame.display.set_mode(size)
-
-sun = planet([400,300], [-0.02,0], [0,0], 1000, (255,0,0), 10, window)
-moon = planet([400,500], [-1,0], [0,0], 10, (255,255,255), 5, window)
-moon2 = planet([400,20], [1,0], [0,0], 10, (255,255,255), 5, window)
-planets=[sun,moon, moon2]
-planets.append(planet([100,300], [0,1], [0,0], 10, (255,255,255), 5, window))
-planets.append(planet([700,300], [0,-1], [0,0], 10, (255,255,255), 5, window))
-
-t1=trace(window, (0,255,0))
-t2=trace(window, (255,0,255))
-counter=0
-while 1:
-	for planet in planets:
-		planet.verlet_a(1)
-	for planet in planets:
-		planet.verlet_b(lambda x: multi_gravity(planet,planets), 1)
-		planet.update_pos()
-	if counter==5:
-		window.fill(pygame.Color(0,0,0))
+	counter=0
+	while 1:
 		for planet in planets:
-			planet.t.newpoint((int(planet.pos[0]), int(planet.pos[1])))
-			planet.t.draw()
+			planet.verlet_a(0.5)
 		for planet in planets:
-			planet.draw()
-		pygame.display.update()
-		fps.tick(30)
+			planet.verlet_b(multi_gravity(planet,planets), 0.5)
+			planet.update_pos()
+		if counter==10:
+			window.fill(pygame.Color(0,0,0))
+			for planet in planets:
+				planet.t.newpoint((int(planet.pos[0]), int(planet.pos[1])))
+				planet.t.draw()
+			for planet in planets:
+				planet.draw()
+			pygame.display.update()
+			fps.tick(30)
 
-		counter=0
-	counter+=1
-pygame.quit()
+			counter=0
+		counter+=1
+	pygame.quit()
 
 
 
