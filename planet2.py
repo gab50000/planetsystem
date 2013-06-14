@@ -13,7 +13,7 @@ class moving_sun(p.planet):
 		self.pos[1]=self.centerpos[1]
 	
 	def rotate(self):
-		self.angle+=0.015
+		self.angle+=0.03
 		self.newpos[0]=self.centerpos[0]+math.cos(self.angle)*self.l
 		self.newpos[1]=self.centerpos[1]+math.sin(self.angle)*self.l
 
@@ -22,8 +22,8 @@ pygame.init()
 fps=pygame.time.Clock()
 window=pygame.display.set_mode(size)
 
-sun = moving_sun([400,300], [400,300], [0,0], [0,0], 1000, (255,255,0), 10, window)
-moon = p.planet([400,500], [-1,0], [0,0], 10, (255,255,255), 5, window)
+sun = moving_sun([400,300], [400,300], [0,0], [0,0], 10000, (255,255,0), 10, window)
+moon = p.planet([400,500], [-5,0], [0,0], 10, (255,255,255), 5, window)
 planets=[sun,moon]
 
 counter=0
